@@ -1,0 +1,78 @@
+{{- range $key,$value := .Values.cronjobs }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $value.name }}
+  namespace: {{ include "microservice.namespace" $ }}
+  labels: {{- include "microservice.labels" $ | nindent 4 }}
+  {{- if or $.Values.annotations $value.annotations }}
+  annotations:
+  {{- if $.Values.annotations }}
+    {{- toYaml $.Values.annotations | nindent 4 }}
+  {{- end }}
+  {{- if $value.annotations }}
+    {{- toYaml $value.annotations | nindent 4 }}
+  {{- end }}
+  {{- end }}     
+spec:
+  schedule: "{{ $value.schedule }}"
+  {{- with $value.concurrencyPolicy }}
+  concurrencyPolicy: {{ . }}
+  {{- end }}
+  {{- with $value.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $value.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ . }}
+  {{- end }}
+  {{- with $value.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ . }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ include "microservice.fullname" $ }}
+            {{- include "microservice.labels" $ | nindent 12 }}
+          {{- if or $.Values.annotations $value.annotations }}
+          annotations:
+          {{- if $.Values.annotations }}
+            {{- toYaml $.Values.annotations | nindent 12 }}
+          {{- end }}
+          {{- if $value.annotations }}
+            {{- toYaml $value.annotations | nindent 12 }}
+          {{- end }}
+          {{- end }}            
+        spec:
+          {{- if $value.imagePullSecrets }}
+          imagePullSecrets: {{- toYaml $value.imagePullSecrets | nindent 10 }}
+          {{- end }}
+          restartPolicy: {{ $value.jobRestartPolicy }}
+          containers:
+            - name: {{ $value.name }}
+              image: {{ required "A valid container image name is required" $value.image }}
+              imagePullPolicy: {{ default  $value.imagePullPolicy  ($.Values.global).imagePullPolicy }}
+              {{- if $value.command }}
+              command: {{  tpl (toJson $value.command) $ }}
+              {{- end }}
+              {{- if $value.args }}
+              args: {{  tpl (toJson $value.args) $ }}
+              {{- end }}
+              {{- if or $value.env ($.Values.global).env }}
+              env:
+                {{- if $value.env }}
+                {{- include "microservice.tplvalues.render" (dict "value" $value.env "context" $) | nindent 14 }}
+                {{- end }}
+                {{- if ($.Values.global).env }}
+                {{- include "microservice.tplvalues.render" (dict "value" ($.Values.global).env "context" $) | nindent 14 }}
+                {{- end }}
+              {{- end }}
+              {{- if $value.volumeMounts }}
+              volumeMounts: {{- toYaml $value.volumeMounts | nindent 16 }}
+              {{- end }}          
+          {{- if $value.volumes }}
+          volumes: {{- toYaml $value.volumes | nindent 12 }}
+          {{- end }}              
+{{- end }}

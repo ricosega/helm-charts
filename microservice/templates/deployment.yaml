@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "microservice.fullname" . }}
+  namespace: {{ template "microservice.namespace" .}}
+  labels:
+    {{- include "microservice.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "microservice.fullname" . }}
+      {{- include "microservice.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "microservice.fullname" . }}
+        {{- include "microservice.labels" . | nindent 8 }}
+      annotations:
+      {{- range .Values.configmaps }}
+        checksum/configmap-{{ .name }}: {{ print .data | sha256sum }}
+      {{- end }}
+      {{- range .Values.secrets }}
+        checksum/secret-{{ .name }}: {{ print .data | sha256sum }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ template "microservice.serviceAccountName" . }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "microservice.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "microservice.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "microservice.tplvalues.render" (dict "value" .Values.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers.enabled }}
+      initContainers:
+        {{- toYaml .Values.initContainers.spec | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.image.imagePullSecrets .Values.dockerConfigJson.enabled }}
+      imagePullSecrets:
+      {{- if .Values.image.imagePullSecrets }}
+      {{ toYaml .Values.image.imagePullSecrets | nindent 8 }}
+      {{- end -}}
+      {{- if .Values.dockerConfigJson.enabled }}
+        - name: {{ template "microservice.fullname" . }}-registry
+      {{- end -}}
+      {{- end }}
+      containers:
+      {{- if .Values.sidecar.enabled }}
+      {{- toYaml .Values.sidecar.spec | nindent 6 }}
+      {{- end }}
+      - name: {{ template "microservice.fullname" . }}
+        image: {{ template "images.imageName" . }}
+        imagePullPolicy: {{ default  .Values.image.pullPolicy  (.Values.global).imagePullPolicy }}
+          {{- if .Values.ports }}
+        ports: {{- toYaml .Values.ports | nindent 10 }}
+          {{- end }}
+        {{- if or .Values.env .Values.global.env }}
+        env:
+          {{- if .Values.env }}
+          {{- include "microservice.tplvalues.render" (dict "value" .Values.env "context" $) | nindent 10 }}
+          {{- end }}
+          {{- if .Values.global.env }}
+          {{- include "microservice.tplvalues.render" (dict "value" .Values.global.env "context" $) | nindent 10 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.resources }}
+        {{- if .Values.command }}
+        command: {{  tpl (toJson .Values.command) . }}
+        {{- end }}
+        {{- if .Values.args }}
+        args: {{  tpl (toJson .Values.args) . }}
+        {{- end }}
+        resources: {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}                 
+        {{- if .Values.liveness }}
+        livenessProbe: {{- toYaml .Values.liveness.spec | nindent 10 }}
+        {{- end }}
+        {{- if .Values.readiness }}
+        readinessProbe: {{- toYaml .Values.readiness.spec | nindent 10 }}
+        {{- end }}
+        {{- if .Values.lifecycle }}
+        lifecycle: {{- toYaml .Values.lifecycle.spec | nindent 10 }}
+        {{- end }}
+        {{- if .Values.volumeMounts }}
+        volumeMounts: {{- toYaml .Values.volumeMounts | nindent 10 }}
+        {{- end }}
+      {{- if .Values.volumes }}
+      volumes: {{- toYaml .Values.volumes | nindent 6 }}
+      {{- end }}

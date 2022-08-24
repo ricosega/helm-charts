@@ -1,0 +1,426 @@
+# -- This will be prefixed with Release name
+nameOverride:
+
+# -- Here set the repo or microservice name.
+fullnameOverride:
+
+# Do not use it if you do not know what you are doing.
+namespaceOverride:
+
+## DEPLOYMENT ##
+
+# -- Docker image to use in the microservice
+image:
+  registry: docker.io
+  repository: nginx
+  # -- tag has preference over appVersion, so do not fill it unless you are sure.
+  tag: latest
+  pullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+# -- Generates a Secret type dockerconfigjson (needed if the docker images are stored in a protected registry)
+dockerConfigJson:
+  enabled: false
+  registry: docker.io
+  username: admin
+  password: admin
+  email: admin@admin  
+
+# -- Command to add to the pod (entrypoint)
+command: []
+
+# -- Args for the pod
+args: []
+
+# -- Custom ports to add to the microservice
+ports: []
+# #   - name: http-main
+# #     containerPort: 80
+
+# -- Variables to attach to the microservice
+env: []
+# #   - name: EXAMPLE_VARIABLE
+# #     value: "10"
+
+# -- Add init containers
+initContainers:
+  enabled: false 
+# #   spec:
+# #     - image: busybox:latest
+# #       imagePullPolicy: IfNotPresent
+# #       name: busybox
+# #       command: 
+# #         - sh
+# #         - example_script.sh
+# #       securityContext:
+# #         privileged: true
+# #       volumeMounts:
+# #       - mountPath: /srv
+# #         name: scripts-iptables
+# #       - mountPath: /certs
+# #         name: client-ovpn
+# #         readOnly: true
+
+# -- Add a sidecar to the main pod
+sidecar:
+  enabled: false 
+# #   spec:
+# #     - name: authorizer
+# #       image: busybox:latest
+# #       ports: 
+# #         - name: http-sidecar
+# #           protocol: TCP
+# #           containerPort: 80
+
+liveness: {}
+# #   spec:
+# #     failureThreshold: 3
+# #     httpGet:
+# #       path: /healthcheck
+# #       port: 80
+# #       scheme: HTTP
+# #     initialDelaySeconds: 5
+# #     periodSeconds: 30
+# #     successThreshold: 1
+# #     timeoutSeconds: 1
+
+readiness: {}
+# #   spec:
+# #     exec:
+# #       command:
+# #       - node --version
+# #     initialDelaySeconds: 5
+# #     periodSeconds: 5
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits: {}
+# #     cpu: 1000m
+# #     memory: 1Gi
+  requests: {}
+# #     cpu: 250m
+# #     memory: 256Mi  
+
+# -- Add lifecycle policies
+lifecycle: {}
+# #   spec: # all that you will put inside spec will be inserted in the lifecycle property of the main container in the pod/deployment. 
+# #     postStart: # podStart is only one of the possibilities.
+# #       exec:
+# #         command: ["/bin/sh", "-c", "ls"] # then this command will be executed by the container once it starts  
+
+# -- Secrets for the microservice. Important: if the key has the suffix: ".crt" ".key" or ".pem" you MUST encode the value in base64
+secrets: []
+# #   - name: "env"
+# #     data:
+# #       PASSWORD: "example"
+# #       apikey: "example"
+# #   - name: "tls"
+# #     data:
+# #       ca.crt: "ZXhhbXBsZQo="
+# #       cert.crt: "ZXhhbXBsZQo="
+# #       cert.key.filepath: "secrets.crt" # The path to file should be relative to the `values.yaml` file.
+
+# -- Configmaps for the microservice.
+configmaps: []
+# #   - name: "cm-1"
+# #     data:
+# #       file-1: |-
+# #         Example cm-1
+# #         multiline
+# #         file-1
+# #       file-2: |-
+# #         Example cm-1 file-2
+# #   - name: "cm-2"
+# #     data:
+# #       file-3: |-
+# #         Example cm-2 file-3
+
+# -- volumes allows you to mount other volumes see https://kubernetes.io/docs/concepts/storage/volumes
+volumes: []
+# #   - name: example
+# #     emptyDir: {}
+# -- A list of configmaps to have as volume inside the pod
+# #   - name: ca-root
+# #     configMap:
+# #       defaultMode: 420
+# #       name: root-ca
+# -- A list of secrets to have as volume inside the pod
+# #   - name: redis-tls
+# #     secret:
+# #       secretName: redis-tls
+# #       defaultMode: 420
+
+# -- volumeMounts allows you to mount other volumes on pod
+volumeMounts: []
+# #   - name: example
+# #     mountPath: /
+# #     subPath: example.conf
+# -- This is the example configmap used in the volume example and their paths to mount inside the pod
+# #   - name: ca-root
+# #     mountPath: /certs/ca/
+# -- This is the example secret used in the volume example and their paths to mount inside the pod
+# #   - name: redis-tls
+# #     mountPath: /certs/redis/
+
+# -- Node labels for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: "{{ include \"microservice.fullname\" . }}"
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/component: "{{ .Chart.Name }}"
+
+# -- Enable horizontal pod autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# -- Pod Disruption Budget
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: 1
+
+## NETWORK ##
+
+# -- Configure the service
+service:
+  ## ServiceType
+  ## ref: https://kubernetes.io/docs/user-guide/services/#publishing-services---service-types
+  type: ClusterIP
+  ports:
+    - name: http-main
+      port: 80
+      protocol: TCP
+      targetPort: 80     
+
+# -- Needed only for automatic TLS certificate generation. WORK IN PROGRESS
+ingress:
+  # -- Set to true to enable ingress record generation
+  enabled: false
+  annotations: {}
+  #  kubernetes.io/ingress.class: nginx
+  #  kubernetes.io/tls-acme: "true"
+  labels: {}
+  path: /
+  pathType: Prefix  
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- Enable Istio VirtualService
+virtualServices: 
+# #  - name: deny
+# #    spec:
+# #      gateways:
+# #      - istio-system/gateway
+# #      hosts:
+# #      - chart-example.local
+# #      http:
+# #      - name: "deny external access to internal path"
+# #        fault:
+# #          abort:
+# #            httpStatus: 404
+# #            percentage:
+# #              value: 100
+# #        match:
+# #        - uri:
+# #            prefix: /internal/
+# #        route:
+# #        - destination:
+# #            host: chart.svc.cluster.local
+# #   - name: allow
+# #     spec:
+# #       gateways:
+# #       - istio-system/gateway
+# #       hosts:
+# #       - chart-example.local
+# #       http:          
+# #       - corsPolicy:
+# #           allowCredentials: true
+# #           allowHeaders:
+# #           - content-type
+# #           - Sec-Websocket-Extensions
+# #           - Sec-Websocket-Key
+# #           - Sec-Websocket-Version
+# #           - Origin
+# #           - Upgrade
+# #           - Upgrade-Insecure-Requests
+# #           allowMethods:
+# #           - GET
+# #           - POST
+# #           - PATCH
+# #           - OPTIONS
+# #           - CONNECT
+# #           allowOrigins:
+# #           - exact: https://chart-example.local
+# #           - regex: .+\.local
+# #         match:
+# #         - uri:
+# #             prefix: /
+# #         retries:
+# #           attempts: 3
+# #           perTryTimeout: 2s
+# #           retryOn: gateway-error,connect-failure,refused-stream
+# #         route:
+# #         - destination:
+# #             host: chart.svc.cluster.local
+# #             port:
+# #               number: 80
+
+# -- Istio DestinationRules.
+destinationRules: []
+# #  - name: rule-a
+# #    spec:
+# #      host: chart.svc.cluster.local
+# #      trafficPolicy:
+# #        tls:
+# #          mode: SIMPLE
+# #  - name: rule-b
+# #    spec:
+# #      host: chart.svc.cluster.local
+# #      trafficPolicy:
+# #        loadBalancer:
+# #          consistentHash:
+# #            httpCookie:
+# #              name: _oauth2_proxy
+# #              ttl: 86400s                        
+
+## MONITORING ##
+
+# -- Add ServiceMonitor for prometheus scraping
+metrics:
+  enabled: false
+  spec:
+    path: /metrics
+    port: http-main
+    interval: 10s
+    honorLabels: true
+    releaseLabel: monitoring
+
+## PERMISSIONS ##
+
+# -- Pod ServiceAccount
+serviceAccount:
+  enabled: false
+
+## -- You can create multiples roles/rolebindings to the same SA
+rbac:
+  enabled: false
+  spec:
+# #     - name: list-pods-on-test-ns
+# #       # -- Override role & roleBinding namespace (default: Release namespace)
+# #       namespaceOverride: test
+# #       roleRules:
+# #       - apiGroups:
+# #         - ""
+# #         resources:
+# #         - pods
+# #         verbs:
+# #         - list
+# #     - name: list-secrets
+# #       roleRules:
+# #       - apiGroups:
+# #         - ""
+# #         resources:
+# #         - secrets
+# #         verbs:
+# #         - list
+
+# -- Following fields will apply to deployments, jobs and cronjobs
+global:
+  # image:
+  #   imagePullSecrets: []
+# -- Extra environment variables for pods
+  env: []
+  #  - name: VAR1
+  #    value: "aaaaa"
+
+# -- Jobs & Cronjobs
+jobs: []
+  # - name: "job-name" # This is the name of the Job object in Kubernetes.
+  #   annotations: {}
+  #     # "helm.sh/hook": pre-install
+  #     # "helm.sh/hook-weight": "1"
+  #     # "helm.sh/hook-delete-policy": hook-succeeded  
+  #   backoffLimit: "6" # Number of retries before considering a Job failed.
+  #   activeDeadlineSeconds: "100" # Number of seconds before terminating a Job.
+  #   ttlSecondsAfterFinished: "0" # Number of seconds before cleaning the Jobs, 0 means after terminated the Job.
+  #   restartPolicy: Never # Allowed values are : "OnFailure, Never"
+  #   image: "" # This field specify the container image name to use.
+  #   imagePullPolicy: "Always"
+  #   imagePullSecrets: [] # Name of the secret to use when pulling images.
+  #     # - name: test
+  #   command: [] # This field specify any command to use in case of need.
+  #   args: [] # This field specify any args to use in case of need.
+  #   env: []
+  #     # - name: EXAMPLE
+  #     #   value: example
+  #   volumes:
+  #     - name: ca-root
+  #       configMap:
+  #         defaultMode: 420
+  #         name: root-ca
+  #     - name: redis-tls
+  #       secret:
+  #         secretName: redis-tls
+  #         defaultMode: 420
+  #   volumeMounts:
+  #     - name: ca-root
+  #       mountPath: /certs/ca/
+  #     - name: redis-tls
+  #       mountPath: /certs/redis/
+
+cronjobs: []
+  # - name: "all-days-01-00" # This is the name of the CronJob object in Kubernetes.
+  #   annotations: {}
+  #     # "helm.sh/hook": pre-install
+  #     # "helm.sh/hook-weight": "1"
+  #     # "helm.sh/hook-delete-policy": hook-succeeded     
+  #   schedule: "0 1 * * *" # CronJob notation time to perform the backup.
+  #   concurrencyPolicy: "Forbid" # If the same CronJob can be executed at the same time. Allowed values are "Allow,Forbid,Replace" .
+  #   failedJobsHistoryLimit: "3" # This field specify how many failed jobs should be kept. Setting limit to 0 will not keep any.
+  #   successfulJobsHistoryLimit: "1" # This field specify how many completed jobs should be kept. Setting limit to 0 will not keep any.
+  #   jobRestartPolicy: Never # Allowed values are : "Always, OnFailure, Never"
+  #   startingDeadlineSeconds: "" # It stands for the deadline in seconds for starting the job if it misses its scheduled time for any reason.
+  #   image: "" # This field specify the container image name to use.
+  #   imagePullPolicy: "Always"
+  #   imagePullSecrets: [] # Name of the secret to use when pulling images.
+  #     # - name: test
+  #   command: [] # This field specify any command to use in case of need.
+  #   args: [] # This field specify any args to use in case of need.
+  #   env: []
+  #     # - name: EXAMPLE
+  #     #   value: example
+  #   volumes:
+  #     - name: ca-root
+  #       configMap:
+  #         defaultMode: 420
+  #         name: root-ca
+  #     - name: redis-tls
+  #       secret:
+  #         secretName: redis-tls
+  #         defaultMode: 420
+  #   volumeMounts:
+  #     - name: ca-root
+  #       mountPath: /certs/ca/
+  #     - name: redis-tls
+  #       mountPath: /certs/redis/ 

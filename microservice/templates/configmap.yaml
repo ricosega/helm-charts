@@ -1,0 +1,17 @@
+{{- if .Values.configmaps }}
+{{ range .Values.configmaps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-%s" ( include "microservice.fullname" $ ) .name | quote }}
+  namespace: {{ include "microservice.namespace" $ }}
+  {{- with $.Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels: {{- include "microservice.labels" $ | nindent 4 }}
+data:
+  {{- include "microservice.tplvalues.render" (dict "value" .data "context" $) | nindent 2 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,27 @@
+{{ if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "microservice.fullname" . }}
+  namespace: {{ template "microservice.namespace" .}}
+  labels:
+    app: {{ template "microservice.fullname" . }}
+    release: {{ .Values.metrics.spec.releaseLabel }}
+    {{- include "microservice.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "microservice.fullname" . }}
+  namespaceSelector:
+    matchNames:
+    - {{ template "microservice.namespace" .}}
+  endpoints:
+  - path: {{ .Values.metrics.spec.path }}
+    port: {{ .Values.metrics.spec.port }}
+    interval: {{ .Values.metrics.spec.interval }}
+    honorLabels: {{ .Values.metrics.spec.honorLabels }}
+{{ end }}
