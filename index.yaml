@@ -2,7 +2,16 @@ apiVersion: v1
 entries:
   microservice:
   - apiVersion: v2
-    created: "2022-08-24T20:51:30.292394+02:00"
+    created: "2022-08-29T19:30:06.047025+02:00"
+    description: A Helm chart for Kubernetes microservices. +Istio features
+    digest: 60897e114942b3c309186cb00bdbde18b06f33a147df673a0e53b53cb1c5506d
+    name: microservice
+    type: application
+    urls:
+    - https://ricosega.github.io/helm-charts/microservice-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    created: "2022-08-29T19:30:06.046192+02:00"
     description: A Helm chart for Kubernetes microservices. +Istio features
     digest: 3cf54a366aa81b56b760b6d4cee9fac6c11fe6b9764382d85b1474ede7745c2e
     name: microservice
@@ -10,4 +19,4 @@ entries:
     urls:
     - https://ricosega.github.io/helm-charts/microservice-0.1.0.tgz
     version: 0.1.0
-generated: "2022-08-24T20:51:30.291388+02:00"
+generated: "2022-08-29T19:30:06.04459+02:00"
