@@ -193,8 +193,9 @@ autoscaling:
 # -- Pod Disruption Budget
 pdb:
   enabled: false
-  minAvailable: 1
-  maxUnavailable: 1
+  # -- You can specify only one of maxUnavailable and minAvailable in a single PodDisruptionBudget.
+  # minAvailable: 1
+  # maxUnavailable: 1
 
 ## NETWORK ##
 
