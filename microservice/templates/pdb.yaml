@@ -1,28 +1,23 @@
 {{- if .Values.pdb.enabled }}
 ---
-{{- if .Values.pdb.minAvailable }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ template "microservice.fullname" . }}-minavailable
+  name: {{ template "microservice.fullname" . }}
   namespace: {{ include "microservice.namespace" $ }}
 spec:
+  {{- if or .Values.pdb.minAvailable .Values.pdb.maxUnavailable }}
+  {{- if .Values.pdb.minAvailable }}
   minAvailable: {{ .Values.pdb.minAvailable }}
-  selector:
-    matchLabels:
-      app: {{ template "microservice.fullname" . }}
-{{- end }}
----
-{{- if .Values.pdb.minAvailable }}
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: {{ template "microservice.fullname" . }}-maxunavailable
-  namespace: {{ include "microservice.namespace" $ }}
-spec:
+  {{- end }}
+  {{- if .Values.pdb.maxUnavailable }}
   maxUnavailable: {{ .Values.pdb.maxUnavailable }}
+  {{- end }}
+  {{- if and .Values.pdb.minAvailable .Values.pdb.maxUnavailable }}
+  {{ fail "ERROR: Please, use only one of minAvailable or maxUnavailable" }}
+  {{- end }}
+  {{- end }}  
   selector:
     matchLabels:
       app: {{ template "microservice.fullname" . }}
-{{- end }}
 {{- end }}
