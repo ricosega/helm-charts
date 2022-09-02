@@ -1,9 +1,11 @@
 name: Lint and Test Charts
 
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
   pull_request:
-    paths:
-      - 'stable/**'
 
 jobs:
   lint-chart:
@@ -24,8 +26,7 @@ jobs:
     strategy:
       matrix:
         k8s:
-          - v1.20.0
-          - v1.20.2
+          - v1.23.8
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -43,8 +44,7 @@ jobs:
     strategy:
       matrix:
         k8s:
-          - v1.20.0
-          - v1.20.2
+          - v1.23.10
     steps:
       - name: Checkout
         uses: actions/checkout@v1

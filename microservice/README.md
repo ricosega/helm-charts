@@ -1,6 +1,6 @@
 # microservice
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for Kubernetes microservices. +Istio features
 
@@ -31,7 +31,7 @@ A Helm chart for Kubernetes microservices. +Istio features
 | nameOverride | string | `nil` | This will be prefixed with Release name |
 | namespaceOverride | string | `nil` |  |
 | nodeSelector | object | `{}` | Node labels for pod assignment |
-| pdb | object | `{"enabled":false,"maxUnavailable":1,"minAvailable":1}` | Pod Disruption Budget |
+| pdb | object | `{"enabled":false}` | Pod Disruption Budget |
 | ports | list | `[]` | Custom ports to add to the microservice |
 | rbac.enabled | bool | `false` |  |
 | rbac.spec | string | `nil` |  |
@@ -39,6 +39,7 @@ A Helm chart for Kubernetes microservices. +Istio features
 | resources.limits | object | `{}` |  |
 | resources.requests | object | `{}` |  |
 | secrets | list | `[]` | Secrets for the microservice. Important: if the key has the suffix: ".crt" ".key" or ".pem" you MUST encode the value in base64 |
+| securityContext | object | `{"enabled":false,"spec":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}` | SecurityContext attached to the main container |
 | service | object | `{"ports":[{"name":"http-main","port":80,"protocol":"TCP","targetPort":80}],"type":"ClusterIP"}` | Configure the service |
 | serviceAccount | object | `{"enabled":false}` | Pod ServiceAccount |
 | sidecar | object | `{"enabled":false}` | Add a sidecar to the main pod |

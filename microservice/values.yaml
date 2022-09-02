@@ -42,6 +42,17 @@ env: []
 # #   - name: EXAMPLE_VARIABLE
 # #     value: "10"
 
+# -- SecurityContext attached to the main container
+securityContext:
+  enabled: false
+  spec:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]  
+
 # -- Add init containers
 initContainers:
   enabled: false 
