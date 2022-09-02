@@ -48,6 +48,8 @@ securityContext:
   spec:
     allowPrivilegeEscalation: false
     runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
     seccompProfile:
       type: RuntimeDefault
     capabilities:
